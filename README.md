@@ -154,25 +154,6 @@ python -m emg2qwerty.train \
   --multirun
 ```
 
-Note that `val/CER` printed by these runs is computed on 4 s windows with the
-offline transforms (it is the checkpoint-selection metric); `test/CER` is the
-whole-session causal result.
-
-To dump the decoded test predictions of a checkpoint (one JSON per user, with
-its test metrics), use `scripts/dump_predictions.py` with the same overrides;
-`scripts/dump_all_predictions.sh` does so for every released checkpoint and
-both decoders, and `scripts/collect_results.py` tabulates the dumps into
-[results/test_cer.md](results/test_cer.md). `scripts/compare_predictions.py`
-compares two dumps character by character with utterance-level paired tests,
-e.g., against the upstream spectrogram models whose predictions are included
-under `results/predictions/baseline_*`:
-
-```shell
-python scripts/compare_predictions.py \
-  --model-a results/predictions/finetuned_beam \
-  --model-b results/predictions/baseline_finetuned_beam
-```
-
 The 6-gram character-level language model under `models/lm/` is the upstream
 one (built from WikiText-103 with KenLM; see `scripts/lm/`).
 
