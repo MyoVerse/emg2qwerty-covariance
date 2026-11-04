@@ -55,7 +55,7 @@ reach parity with upstream's fine-tuned models under the LM (6.97 vs 6.95).
 ## Setup
 
 ```shell
-git clone https://github.com/<github-user>/emg2qwerty-covariance.git ~/emg2qwerty-covariance
+git clone https://github.com/MyoVerse/emg2qwerty-covariance.git ~/emg2qwerty-covariance
 cd ~/emg2qwerty-covariance
 conda env create -f environment.yml
 conda activate emg2qwerty
@@ -68,12 +68,12 @@ ln -s ~/emg2qwerty-data-2021-08 ~/emg2qwerty-covariance/data
 ```
 
 Pretrained checkpoints and the per-session Fréchet means are distributed as
-[release assets](https://github.com/<github-user>/emg2qwerty-covariance/releases)
+[release assets](https://github.com/MyoVerse/emg2qwerty-covariance/releases)
 rather than through git:
 
 ```shell
 cd ~/emg2qwerty-covariance
-wget -qO- https://github.com/<github-user>/emg2qwerty-covariance/releases/download/v1.0/models.tar.gz | tar -xzv
+wget -qO- https://github.com/MyoVerse/emg2qwerty-covariance/releases/download/v1.0/models.tar.gz | tar -xzv
 ```
 
 This populates:
