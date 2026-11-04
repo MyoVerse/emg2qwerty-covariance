@@ -1,0 +1,17 @@
+# @package _global_
+# Same TDS-Conv-CTC architecture as tds_conv_ctc.yaml; only the input size
+# differs, as each band's 16x16 covariance matrix replaces its 16x33
+# log-spectrogram as the per-timestep input to the rotation-invariant MLP.
+module:
+  _target_: emg2qwerty.lightning.TDSConvCTCModule
+  in_features: 256  # C * C = 16 * 16 covariance entries per band
+  mlp_features: [384]
+  block_channels: [24, 24, 24, 24]
+  kernel_width: 32  # Total temporal receptive field of 125 samples given 4 layers
+  decode_during_fit: true  # Checkpoints are selected by val/CER (monitor_metric)
+  ctc_zero_infinity: true
+
+datamodule:
+  _target_: emg2qwerty.lightning.WindowedEMGDataModule
+  window_length: 8000  # 4 sec windows for 2kHz EMG
+  padding: [1800, 200]  # 900ms past context, 100ms future context

@@ -1,0 +1,82 @@
+# @package _global_
+# Replaces log-spectrograms with per-band spatial covariance matrices of the
+# z-normalized EMG, recentered at the session's Log-Cholesky Fréchet mean M
+# via M^{-1/2} P M^{-1/2} (unsupervised session adaptation).
+#
+# Train/val: each 4 s window is z-normalized on its own and recentered at the
+# precomputed mean of its session (`session_means_path`, written by
+# scripts/compute_frechet_means.py). Val during training is windowed too, so
+# val/CER is only used to select checkpoints.
+#
+# Test: whole sessions are fed at once, z-normalized and recentered with
+# strictly causal running estimates (no future samples, no means file), so
+# test/CER is what a streaming deployment would achieve.
+session_means_path: ${hydra:runtime.cwd}/models/frechet_means.pt
+
+to_tensor:
+  _target_: emg2qwerty.transforms.ToTensor
+  fields: [emg_left, emg_right]
+
+znorm:
+  _target_: emg2qwerty.transforms.ZNormalizeTime
+
+band_rotation:
+  _target_: emg2qwerty.transforms.ForEach  # i.i.d rotation offset for each band
+  transform:
+    _target_: emg2qwerty.transforms.RandomBandRotation
+    offsets: [-1, 0, 1]
+
+temporal_jitter:
+  _target_: emg2qwerty.transforms.TemporalAlignmentJitter
+  max_offset: 120  # Max 60ms jitter for 2kHz EMG
+
+covariance:
+  _target_: emg2qwerty.transforms.SlidingCovariance
+  window_length: 64  # Must match scripts/compute_frechet_means.py
+  hop_length: 16  # Downsamples from 2kHz to 125Hz, same frames as logspec
+  shrinkage: 0.1
+  center: false
+
+recenter:
+  _target_: emg2qwerty.transforms.SessionRecentering
+  means_path: ${session_means_path}
+
+# SpecAugment counterpart (see `SPDAugment`): masks are set to the identity
+# (the session mean). Same time masking as specaug in log_spectrogram.yaml;
+# electrode masks cover up to 2 of 16 electrodes (cf. 4 of 33 freq bins).
+spd_augment:
+  _target_: emg2qwerty.transforms.SPDAugment
+  n_time_masks: 3
+  time_mask_param: 25  # Max 200ms per time mask at 125Hz
+  n_electrode_masks: 2
+  electrode_mask_param: 2
+
+causal_znorm:
+  _target_: emg2qwerty.transforms.CausalZNormalizeTime
+  warmup: 0  # Strictly causal
+
+causal_recenter:
+  _target_: emg2qwerty.transforms.CausalSessionRecentering
+  warmup: 0  # Strictly causal
+
+transforms:
+  train:
+    - ${to_tensor}
+    - ${znorm}
+    - ${band_rotation}
+    - ${temporal_jitter}
+    - ${covariance}
+    - ${recenter}
+    - ${spd_augment}
+
+  val:
+    - ${to_tensor}
+    - ${znorm}
+    - ${covariance}
+    - ${recenter}
+
+  test:
+    - ${to_tensor}
+    - ${causal_znorm}
+    - ${covariance}
+    - ${causal_recenter}
