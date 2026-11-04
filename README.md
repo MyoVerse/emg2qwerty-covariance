@@ -1,10 +1,9 @@
 # emg2qwerty-covariance
 
-Spatial covariance inputs with causal session recentering for the
+Spatial covariance matrix input for the
 [emg2qwerty](https://github.com/facebookresearch/emg2qwerty) benchmark.
 This is a fork of emg2qwerty that replaces the log-spectrogram front end with sliding-window
-covariance matrices recentered at a per-session Fréchet mean, and evaluates
-every model with **strictly causal** test-time normalization. The model,
+covariance matrices. The model,
 data splits, training recipe and decoders are unchanged from upstream.
 
 ## Method
@@ -12,26 +11,6 @@ data splits, training recipe and decoders are unchanged from upstream.
 Upstream feeds the TDS-Conv-CTC model a log-spectrogram per electrode
 (16 electrodes x 33 frequency bins per band). Here each band's input frame is
 instead its 16 x 16 spatial covariance matrix:
-
-1. **Z-normalization** of each electrode over time
-   (`ZNormalizeTime` / `CausalZNormalizeTime`).
-2. **Sliding covariance** over 64-sample windows with a 16-sample hop (the
-   spectrogram's `n_fft`/`hop_length`, so the frame rate is the same 125 Hz) (`SlidingCovariance`).
-3. **Session recentering** `M^{-1/2} P M^{-1/2}` at the session's
-   Log-Cholesky Fréchet mean `M` (Lin, 2019), an unsupervised,
-   label-free session adaptation (`SessionRecentering` /
-   `CausalSessionRecentering`).
-4. **SPDAugment** during training: the covariance analogue of SpecAugment,
-   masking time frames and electrode blocks to the identity (the session
-   mean) so matrices stay SPD.
-
-Training and validation windows (4 s) use the offline statistics: each window
-is z-normalized on its own and recentered at its session's precomputed mean
-(`scripts/compute_frechet_means.py`). At **test time**, sessions are fed
-whole and both the z-normalization and the Fréchet mean are replaced by
-running (expanding-window) estimates that use no future samples, so the
-reported test CER is what a streaming deployment achieves. No means file is
-needed at test time. See [config/transforms/covariance.yaml](config/transforms/covariance.yaml).
 
 ## Results
 
