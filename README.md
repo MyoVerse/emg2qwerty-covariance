@@ -14,7 +14,7 @@ instead its 16 x 16 spatial covariance matrix:
 
 ## Results
 
-Test CER (%) on the 8 benchmark users with causal test-time normalization.
+Test CER (%) on the 8 benchmark users.
 Upstream log-spectrogram numbers are from Table 2 of the emg2qwerty paper
 ([scripts/experimental_results.py](scripts/experimental_results.py)).
 Beam search uses the upstream 6-gram character LM and decoder defaults
