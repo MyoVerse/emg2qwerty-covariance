@@ -1,7 +1,7 @@
 # emg2qwerty-covariance
 
 Spatial covariance inputs with causal session recentering for the
-[emg2qwerty](https://github.com/facebookresearch/emg2qwerty) benchmark
+[emg2qwerty](https://github.com/facebookresearch/emg2qwerty) benchmark.
 This is a fork of emg2qwerty that replaces the log-spectrogram front end with sliding-window
 covariance matrices recentered at a per-session Fréchet mean, and evaluates
 every model with **strictly causal** test-time normalization. The model,
