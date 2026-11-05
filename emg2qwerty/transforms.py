@@ -364,8 +364,15 @@ def log_cholesky_mean(
 
         L_bar = lower_sum / num + diag(exp(log_diag_sum / num)),
         M = L_bar L_bar^T.
+
+    ``num`` is a scalar, or a tensor broadcastable to the batch dims (...)
+    of the sums (e.g., a per-frame running count).
     """
-    L_bar = lower_sum / num + torch.diag_embed((log_diag_sum / num).exp())
+    if torch.is_tensor(num):
+        lower_num, diag_num = num[..., None, None], num[..., None]
+    else:
+        lower_num = diag_num = num
+    L_bar = lower_sum / lower_num + torch.diag_embed((log_diag_sum / diag_num).exp())
     return L_bar @ L_bar.transpose(-1, -2)
 
 
@@ -446,7 +453,7 @@ class CausalSessionRecentering:
         L = torch.linalg.cholesky(x)  # (T, bands, C, C)
         diag = L.diagonal(dim1=-2, dim2=-1)  # (T, bands, C)
         lower = L - torch.diag_embed(diag)
-        num = torch.arange(1, T + 1, dtype=torch.float64).view(T, 1, 1, 1)
+        num = torch.arange(1, T + 1, dtype=torch.float64).view(T, 1)  # (T, bands)
         lower_sum = lower.cumsum(0)
         log_diag_sum = diag.log().cumsum(0)
         w = min(self.warmup, T)

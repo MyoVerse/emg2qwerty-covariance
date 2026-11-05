@@ -4,6 +4,7 @@
 # This source code is licensed under the license found in the
 # LICENSE file in the root directory of this source tree.
 
+import json
 import logging
 import os
 import pprint
@@ -13,7 +14,7 @@ from typing import Any
 
 import hydra
 import pytorch_lightning as pl
-from hydra.utils import get_original_cwd, instantiate
+from hydra.utils import get_original_cwd, instantiate, to_absolute_path
 from omegaconf import DictConfig, ListConfig, OmegaConf
 
 from emg2qwerty import transforms, utils
@@ -122,6 +123,15 @@ def main(config: DictConfig):
         "best_checkpoint": trainer.checkpoint_callback.best_model_path,
     }
     pprint.pprint(results, sort_dicts=False)
+
+    # Optionally dump the metrics as JSON (see scripts/dump_all_predictions.sh)
+    if config.get("metrics_path") is not None:
+        metrics_path = Path(to_absolute_path(config.metrics_path))
+        metrics_path.parent.mkdir(parents=True, exist_ok=True)
+        results["checkpoint"] = config.checkpoint
+        results["decoder"] = OmegaConf.to_container(config.decoder, resolve=True)
+        metrics_path.write_text(json.dumps(results, indent=2))
+        log.info(f"Saved metrics to {metrics_path}")
 
 
 if __name__ == "__main__":

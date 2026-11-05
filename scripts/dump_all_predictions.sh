@@ -8,9 +8,10 @@
 # Greedy runs sequentially on the GPU (a few minutes in total). Beam search is
 # CPU-bound, so all 24 beam jobs run in parallel on the CPU (about an hour).
 #
-# The validation sessions are also decoded greedily the same way (whole
-# sessions, causal normalization) into results/predictions/val/, by letting
-# them stand in for the test split, and tabulated into results/val_cer.md.
+# Finally, the windowed, non-causal val/CER of every checkpoint (the metric
+# that selects checkpoints, as upstream) is recorded by emg2qwerty.train
+# (train=False, greedy) into results/metrics/<model>_greedy/user*.json and
+# tabulated into results/val_cer.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p logs/dump
@@ -43,12 +44,13 @@ wait
 
 python scripts/collect_results.py
 
+unset CUDA_VISIBLE_DEVICES
 for model in generic randominit finetuned; do
   for u in 0 1 2 3 4 5 6 7; do
-    python scripts/dump_predictions.py user=user$u checkpoint="$(checkpoint $model user$u)" \
-      decoder=ctc_greedy 'dataset.test=${dataset.val}' \
-      +predictions_path=results/predictions/val/${model}_greedy/user$u.json \
-      hydra.run.dir=logs/dump/val/${model}_greedy/user$u
+    python -m emg2qwerty.train user=user$u checkpoint="$(checkpoint $model user$u)" \
+      train=False trainer.accelerator=gpu trainer.devices=1 decoder=ctc_greedy \
+      +metrics_path=results/metrics/${model}_greedy/user$u.json \
+      hydra.run.dir=logs/dump/metrics/${model}_greedy/user$u
   done
 done
 

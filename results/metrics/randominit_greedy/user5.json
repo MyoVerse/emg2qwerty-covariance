@@ -1,0 +1,25 @@
+{
+  "val_metrics": [
+    {
+      "val/loss": 0.42259687185287476,
+      "val/CER": 8.625125885009766,
+      "val/IER": 1.610918402671814,
+      "val/DER": 0.8613938689231873,
+      "val/SER": 6.15281343460083
+    }
+  ],
+  "test_metrics": [
+    {
+      "test/loss": 0.3066527247428894,
+      "test/CER": 6.81506872177124,
+      "test/IER": 0.9018265008926392,
+      "test/DER": 0.6050228476524353,
+      "test/SER": 5.308218955993652
+    }
+  ],
+  "best_checkpoint": "",
+  "checkpoint": "models/personalized-randominit/user5.ckpt",
+  "decoder": {
+    "_target_": "emg2qwerty.decoder.CTCGreedyDecoder"
+  }
+}
