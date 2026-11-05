@@ -17,8 +17,7 @@ instead its 16 x 16 spatial covariance matrix:
 Test CER (%) on the 8 benchmark users.
 Upstream log-spectrogram numbers are from Table 2 of the emg2qwerty paper
 ([scripts/experimental_results.py](scripts/experimental_results.py)).
-Beam search uses the upstream 6-gram character LM and decoder defaults
-(beam 50, LM weight 2.0, insertion bonus 2.0, untuned). Per-user numbers and
+Beam search uses the upstream 6-gram character LM. Per-user numbers and
 the beam-search predictions are in [results/](results/).
 
 | Model | Greedy, spectrogram (upstream) | Greedy, covariance | Beam + LM, spectrogram (upstream) | Beam + LM, covariance |
@@ -66,11 +65,10 @@ models/
   lm/wikitext-103-6gram-charlm.bin # Upstream 6-gram character LM (tracked in git)
 ```
 
-## Fréchet means
+## Fréchet mean
 
 Training (and validation during training) needs the Log-Cholesky Fréchet
-mean of every train/val session, computed exactly as the model sees the data
-(per 4 s window, z-normalized). To regenerate `models/frechet_means.pt` for
+mean of every train/val session. To regenerate `models/frechet_means.pt` for
 all sessions used by the generic and personalized models:
 
 ```shell
@@ -153,21 +151,6 @@ python -m emg2qwerty.train \
   decoder=ctc_beam \
   --multirun
 ```
-
-The 6-gram character-level language model under `models/lm/` is the upstream
-one (built from WikiText-103 with KenLM; see `scripts/lm/`).
-
-The `val/CER` printed alongside `test/CER` by these runs is the validation
-metric of training, as upstream: the validation sessions in 4 s windows with
-the non-causal val transforms (recentered at the precomputed session means of
-`models/frechet_means.pt`). `+metrics_path=<file>.json` saves both metrics.
-`results/test_cer.md` and `results/val_cer.md` tabulate them for the released
-checkpoints (`scripts/dump_all_predictions.sh`, `scripts/collect_results.py`).
-
-## License
-
-emg2qwerty-covariance is CC-BY-NC-4.0 licensed, as found in the LICENSE file,
-like the upstream emg2qwerty it derives from.
 
 ## Citing
 
