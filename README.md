@@ -157,6 +157,22 @@ python -m emg2qwerty.train \
 The 6-gram character-level language model under `models/lm/` is the upstream
 one (built from WikiText-103 with KenLM; see `scripts/lm/`).
 
+The validation sessions can be decoded the same way (whole sessions, causal
+normalization) by letting them stand in for the test split, e.g.
+
+```shell
+python scripts/dump_predictions.py user=user0 \
+  checkpoint=models/personalized-finetuned/user0.ckpt \
+  decoder=ctc_greedy 'dataset.test=${dataset.val}' \
+  +predictions_path=results/predictions/val/finetuned_greedy/user0.json
+```
+
+`results/test_cer.md` and `results/val_cer.md` tabulate the released
+checkpoints on the test and validation sessions
+(`scripts/dump_all_predictions.sh`, `scripts/collect_results.py`). Note that
+the `val/CER` logged during training is windowed and non-causal and only
+selects checkpoints; it is not comparable to either table.
+
 ## License
 
 emg2qwerty-covariance is CC-BY-NC-4.0 licensed, as found in the LICENSE file,

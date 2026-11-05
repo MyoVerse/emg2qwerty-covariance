@@ -7,6 +7,12 @@ upstream log-spectrogram baselines of the emg2qwerty paper
 Dumps are expected at ``<predictions_dir>/<model>_<decoder>/user*.json``,
 with ``<model>`` one of ``generic`` (zero-shot), ``randominit`` or
 ``finetuned``, and ``<decoder>`` one of ``greedy`` or ``beam``.
+
+With ``--split val``, the dumps of the validation sessions (evaluated whole
+and causally exactly like the test sessions, see
+`scripts/dump_all_predictions.sh`) under ``<predictions_dir>/val`` are
+tabulated into ``results/val_cer.md`` instead, without upstream baselines.
+Decoders without any dump are left out.
 """
 
 import json
@@ -67,19 +73,44 @@ def row(label: str, cers: Sequence[float | None]) -> str:
 @click.option(
     "--output",
     type=str,
-    default=Path(__file__).parents[1].joinpath("results", "test_cer.md"),
-    help="Markdown file to write",
+    default=None,
+    help="Markdown file to write (default: results/<split>_cer.md)",
 )
-def main(predictions_dir: str, output: str):
-    lines = [
-        "# Test CER (%)",
-        "",
-        "Covariance models are evaluated with strictly causal test-time "
-        "normalization (config/transforms/covariance.yaml); the spectrogram "
-        "baselines are the upstream emg2qwerty results (Table 2 of the paper).",
-        "",
-    ]
+@click.option(
+    "--split",
+    type=click.Choice(["test", "val"]),
+    default="test",
+    help="Tabulate the test dumps, or the val dumps under <predictions_dir>/val",
+)
+def main(predictions_dir: str, output: str | None, split: str):
+    if output is None:
+        output = Path(__file__).parents[1].joinpath("results", f"{split}_cer.md")
+    if split == "test":
+        lines = [
+            "# Test CER (%)",
+            "",
+            "Covariance models are evaluated with strictly causal test-time "
+            "normalization (config/transforms/covariance.yaml); the spectrogram "
+            "baselines are the upstream emg2qwerty results (Table 2 of the paper).",
+            "",
+        ]
+    else:
+        predictions_dir = Path(predictions_dir).joinpath("val")
+        lines = [
+            "# Validation CER (%)",
+            "",
+            "Validation sessions of each user decoded exactly like the test "
+            "sessions: whole sessions fed at once under strictly causal "
+            "normalization (config/transforms/covariance.yaml), from the "
+            "released checkpoints. This is not the windowed, non-causal "
+            "`val/CER` logged during training, which only selects checkpoints "
+            "(see results/test_cer.md for the test sessions).",
+            "",
+        ]
     for decoder, lm in DECODERS.items():
+        dirs = [Path(predictions_dir).joinpath(f"{model}_{decoder}") for model in MODELS]
+        if split == "val" and not any(d.exists() for d in dirs):
+            continue
         lines += [
             f"## {lm} ({decoder})",
             "",
@@ -89,7 +120,8 @@ def main(predictions_dir: str, output: str):
         for model, (label, benchmark) in MODELS.items():
             cers = load_cer(Path(predictions_dir).joinpath(f"{model}_{decoder}"))
             lines.append(row(f"{label}, covariance", cers))
-            lines.append(row(f"{label}, spectrogram (upstream)", baseline(benchmark, lm)))
+            if split == "test":
+                lines.append(row(f"{label}, spectrogram (upstream)", baseline(benchmark, lm)))
         lines.append("")
 
     Path(output).write_text("\n".join(lines))

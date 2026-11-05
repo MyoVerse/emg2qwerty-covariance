@@ -7,6 +7,10 @@
 #
 # Greedy runs sequentially on the GPU (a few minutes in total). Beam search is
 # CPU-bound, so all 24 beam jobs run in parallel on the CPU (about an hour).
+#
+# The validation sessions are also decoded greedily the same way (whole
+# sessions, causal normalization) into results/predictions/val/, by letting
+# them stand in for the test split, and tabulated into results/val_cer.md.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 mkdir -p logs/dump
@@ -38,3 +42,14 @@ done
 wait
 
 python scripts/collect_results.py
+
+for model in generic randominit finetuned; do
+  for u in 0 1 2 3 4 5 6 7; do
+    python scripts/dump_predictions.py user=user$u checkpoint="$(checkpoint $model user$u)" \
+      decoder=ctc_greedy 'dataset.test=${dataset.val}' \
+      +predictions_path=results/predictions/val/${model}_greedy/user$u.json \
+      hydra.run.dir=logs/dump/val/${model}_greedy/user$u
+  done
+done
+
+python scripts/collect_results.py --split val
