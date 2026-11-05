@@ -117,16 +117,6 @@ python -m emg2qwerty.train \
   --multirun
 ```
 
-If you are using a Slurm cluster, include the `cluster=slurm` override to pick
-up `config/cluster/slurm.yaml` (Hydra Submitit launcher).
-
-To export a training checkpoint for distribution (weights and
-hyper-parameters only):
-
-```shell
-python scripts/export_checkpoint.py logs/<run>/checkpoints/<best>.ckpt models/generic.ckpt
-```
-
 ## Testing
 
 Test sessions are always evaluated with the causal transforms. Greedy
