@@ -171,7 +171,18 @@ like the upstream emg2qwerty it derives from.
 
 ## Citing
 
-If you use this code, please cite the emg2qwerty dataset and baselines:
+If you use this code, please cite the blog post describing this work:
+
+```
+@misc{gowda2026emg2qwerty,
+ author = {Gowda, Harsha},
+ title = {emg2qwerty: Covariance vs. Spectrogram Representations},
+ howpublished = {\url{https://harshavardhanatg.github.io/blog/emg2qwerty.html}},
+ year = {2026}
+}
+```
+
+and the emg2qwerty dataset and baselines:
 
 ```
 @inproceedings{emg2qwerty_neurips2024,
@@ -180,16 +191,5 @@ If you use this code, please cite the emg2qwerty dataset and baselines:
  title = {emg2qwerty: A Large Dataset with Baselines for Touch Typing using Surface Electromyography},
  url = {https://proceedings.neurips.cc/paper_files/paper/2024/file/a64d53074d011e49af1dfc72c332fe4b-Paper-Datasets_and_Benchmarks_Track.pdf},
  year = {2024}
-}
-```
-
-and the blog post describing this work:
-
-```
-@misc{gowda2026emg2qwerty,
- author = {Gowda, Harsha},
- title = {emg2qwerty: Covariance vs. Spectrogram Representations},
- howpublished = {\url{https://harshavardhanatg.github.io/blog/emg2qwerty.html}},
- year = {2026}
 }
 ```
