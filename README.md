@@ -157,21 +157,12 @@ python -m emg2qwerty.train \
 The 6-gram character-level language model under `models/lm/` is the upstream
 one (built from WikiText-103 with KenLM; see `scripts/lm/`).
 
-The validation sessions can be decoded the same way (whole sessions, causal
-normalization) by letting them stand in for the test split, e.g.
-
-```shell
-python scripts/dump_predictions.py user=user0 \
-  checkpoint=models/personalized-finetuned/user0.ckpt \
-  decoder=ctc_greedy 'dataset.test=${dataset.val}' \
-  +predictions_path=results/predictions/val/finetuned_greedy/user0.json
-```
-
-`results/test_cer.md` and `results/val_cer.md` tabulate the released
-checkpoints on the test and validation sessions
-(`scripts/dump_all_predictions.sh`, `scripts/collect_results.py`). Note that
-the `val/CER` logged during training is windowed and non-causal and only
-selects checkpoints; it is not comparable to either table.
+The `val/CER` printed alongside `test/CER` by these runs is the validation
+metric of training, as upstream: the validation sessions in 4 s windows with
+the non-causal val transforms (recentered at the precomputed session means of
+`models/frechet_means.pt`). `+metrics_path=<file>.json` saves both metrics.
+`results/test_cer.md` and `results/val_cer.md` tabulate them for the released
+checkpoints (`scripts/dump_all_predictions.sh`, `scripts/collect_results.py`).
 
 ## License
 
@@ -192,16 +183,13 @@ If you use this code, please cite the emg2qwerty dataset and baselines:
 }
 ```
 
-and the Log-Cholesky metric used for the session means:
+and the blog post describing this work:
 
 ```
-@article{lin2019riemannian,
- author = {Lin, Zhenhua},
- title = {Riemannian Geometry of Symmetric Positive Definite Matrices via Cholesky Decomposition},
- journal = {SIAM Journal on Matrix Analysis and Applications},
- volume = {40},
- number = {4},
- pages = {1353--1370},
- year = {2019}
+@misc{gowda2026emg2qwerty,
+ author = {Gowda, Harsha},
+ title = {emg2qwerty: Covariance vs. Spectrogram Representations},
+ howpublished = {\url{https://harshavardhanatg.github.io/blog/emg2qwerty.html}},
+ year = {2026}
 }
 ```
