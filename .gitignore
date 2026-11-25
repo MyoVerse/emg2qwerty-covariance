@@ -58,3 +58,6 @@ wikitext-103-raw*
 *.arpa
 !emg2qwerty/tests/reuters-3-gram-char-lm.arpa
 models.tar.gz
+
+# Local experiments (not distributed)
+experiments/

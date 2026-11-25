@@ -28,7 +28,7 @@ the beam-search predictions are in [results/](results/).
 
 The covariance front end lowers the mean test CER in every setting (6 or 7 of
 8 users, depending on the row). Covariance models trained from scratch
-reach parity with upstream's fine-tuned models under the LM (6.97 vs 6.95).
+reach parity with upstream's fine-tuned models.
 
 ## Setup
 
@@ -62,7 +62,7 @@ models/
   generic.ckpt                     # Generic model, 96 training users
   personalized-randominit/user{0..7}.ckpt
   personalized-finetuned/user{0..7}.ckpt
-  lm/wikitext-103-6gram-charlm.bin # Upstream 6-gram character LM (tracked in git)
+  lm/wikitext-103-6gram-charlm.bin # Upstream 6-gram character LM
 ```
 
 ## Fréchet mean
@@ -86,9 +86,9 @@ The covariance options of the script must match
 Covariance inputs are the default config (`transforms=covariance`,
 `model=tds_conv_ctc_covariance`); pass `transforms=log_spectrogram
 model=tds_conv_ctc` to train the upstream spectrogram baseline instead.
-Checkpoints are selected by `val/CER`, as upstream.
+Checkpoints are selected by `val/CER`.
 
-Generic user model (effective batch size 256, as upstream's 8 GPUs):
+Generic user model:
 
 ```shell
 python -m emg2qwerty.train \
